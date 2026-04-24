@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning App</title>
+
+<style>
+body{margin:0;font-family:Arial;background:linear-gradient(to bottom,#4facfe,#00f2fe);}
+.screen{display:none;height:100vh;justify-content:center;align-items:center;}
+.active{display:flex;}
+
+.menu{color:white;text-align:center;max-height:90vh;overflow:auto;}
+.category{background:white;color:black;margin:8px;padding:12px;border-radius:12px;cursor:pointer;}
+
+.app{width:95%;max-width:400px;background:#1e3c72;border-radius:20px;padding:15px;color:white;}
+
+.top{display:flex;justify-content:space-between;}
+.progress-bar{height:6px;background:#ccc;border-radius:10px;margin:10px 0;}
+.progress{height:100%;width:0;background:#7CFC00;}
+
+.image-box{height:200px;}
+.image-box img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+
+.options{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+
+button{padding:12px;border:none;border-radius:10px;color:white;cursor:pointer;}
+.btn1{background:#ff4b5c;} .btn2{background:#28a745;} .btn3{background:#007bff;}
+
+#feedback{text-align:center;margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="menu" class="screen active">
+  <div class="menu" id="menuList">
+    <h2>Select Category</h2>
+
+    <div class="category" onclick="startGame('food')">🍎 Food</div>
+    <div class="category" onclick="startGame('animals')">🐶 Animals</div>
+    <div class="category" onclick="startGame('nature')">🌍 Nature</div>
+    <div class="category" onclick="startGame('clothing')">👕 Clothing</div>
+    <div class="category" onclick="startGame('city')">🚗 City</div>
+    <div class="category" onclick="startGame('art')">🎨 Art</div>
+    <div class="category" onclick="startGame('sports')">⚽ Sports</div>
+    <div class="category" onclick="startGame('adjectives')">✨ Adjectives</div>
+
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <div class="app">
+
+    <div class="top">
+      <span id="score">Score: 0</span>
+      <span id="count">Tap to start 🔊</span>
+    </div>
+
+    <div class="progress-bar">
+      <div id="progress" class="progress"></div>
+    </div>
+
+    <h3 style="text-align:center;">What is this?</h3>
+
+    <div class="image-box">
+      <img id="image">
+    </div>
+
+    <div class="options">
+      <button class="btn1"></button>
+      <button class="btn2"></button>
+      <button class="btn3"></button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <button onclick="goMenu()" style="margin-top:10px;background:black;">⬅ Back</button>
+
+  </div>
+</div>
+
+<!-- AUDIO -->
+<audio id="bgMusic" loop src="https://www.bensound.com/bensound-music/bensound-sunny.mp3"></audio>
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+/* ====== DATA (IMÁGENES REALES) ====== */
+const categories = {
+food: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg",opt:["Apple","Banana","Orange"],ans:"Apple"},
+{img:"https://pixabay.com/es/photos/knife-objects-comida-kitchen-5096410/",opt:["Knife","Fork","Spoon"],ans:"Knife"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/2/2f/Cooked_rice.jpg",opt:["Rice","Pasta","Soup"],ans:"Rice"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/5/5b/Pomegranate.jpg",opt: ["Pomegranate","Apple","Orange"],ans:"Pomegranate"
+},
+{img:"https://upload.wikimedia.org/wikipedia/commons/2/2f/Dragon_fruit.jpg",opt:["Dragonfruit","Banana","Papaya"],ans:"Dragonfruit"
+},
+{img:"https://upload.wikimedia.org/wikipedia/commons/6/6f/Figs.jpg",
+opt:["Fig","Plum","Cherry","Peach"],ans:"Fig"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Lime.jpg",
+opt:["Lime","Lemon","Orange"],ans:"Lime"
+}
+],
+
+animals: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/6/6e/Golde33443.jpg",opt:["Dog","Cat","Horse"],ans:"Dog"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/32/Housefly.jpg",opt:["Fly","Bee","Ant"],ans:"Fly"}
+],
+
+nature: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/4/4c/Sun_white.jpg",opt:["Sun","Moon","Star"],ans:"Sun"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/e/ec/FullMoon2010.jpg",opt:["Moon","Sun","Cloud"],ans:"Moon"}
+],
+
+clothing: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/8/8e/Tshirt.svg",opt:["Shirt","Jacket","Pants"],ans:"Shirt"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/3c/Human_eye.jpg",opt:["Eye","Ear","Nose"],ans:"Eye"}
+],
+
+city: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/7/7c/Car.jpg",opt:["Car","Bus","Bike"],ans:"Car"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Office_work.jpg",opt:["Office","School","Hospital"],ans:"Office"}
+],
+
+art: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/2/24/Leonardo_da_Vinci_-_Mona_Lisa.jpg",opt:["Painting","Music","Dance"],ans:"Painting"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/MacBook_Air_M1.png",opt:["Laptop","Phone","Tablet"],ans:"Laptop"}
+],
+
+sports: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/6/6e/Soccer_ball.svg",opt:["Football","Basketball","Tennis"],ans:"Football"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Running.png",opt:["Run","Jump","Swim"],ans:"Run"}
+],
+
+adjectives: [
+{img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Large_and_small.jpg",opt:["Big","Small","Fast"],ans:"Big"},
+{img:"https://upload.wikimedia.org/wikipedia/commons/6/6d/Happy_smiley_face.png",opt:["Happy","Sad","Angry"],ans:"Happy"}
+]
+
+};
+
+/* ====== STATE ====== */
+let data=[], current=0, score=0, started=false;
+
+/* ====== DOM ====== */
+const menu=document.getElementById("menu");
+const game=document.getElementById("game");
+const img=document.getElementById("image");
+const buttons=document.querySelectorAll(".options button");
+const feedback=document.getElementById("feedback");
+const scoreText=document.getElementById("score");
+const count=document.getElementById("count");
+const progress=document.getElementById("progress");
+
+const music=document.getElementById("bgMusic");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+
+/* ====== GAME FLOW ====== */
+function startGame(cat){
+  data=categories[cat];
+  current=0;
+  score=0;
+  started=false;
+
+  scoreText.textContent="Score: 0";
+  count.textContent="Tap to start 🔊";
+  feedback.textContent="";
+
+  menu.classList.remove("active");
+  game.classList.add("active");
+}
+
+function goMenu(){
+  game.classList.remove("active");
+  menu.classList.add("active");
+}
+
+/* ====== VOZ ====== */
+function speak(text,delay=0){
+  setTimeout(()=>{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="en-US";
+    speechSynthesis.speak(u);
+  },delay);
+}
+
+function speakSequence(options){
+  speechSynthesis.cancel();
+  speak("What is this?");
+  options.forEach((w,i)=>speak(w,(i+1)*900));
+}
+
+/* ====== LOAD ====== */
+function loadQuestion(){
+  const q=data[current];
+
+  img.src=q.img;
+  count.textContent=`${current+1}/${data.length}`;
+  progress.style.width=(current/data.length)*100+"%";
+
+  buttons.forEach((b,i)=>{
+    b.textContent=q.opt[i];
+    b.disabled=false;
+    b.style.background=["#ff4b5c","#28a745","#007bff"][i];
+    b.onclick=()=>checkAnswer(b,q.opt[i]);
+  });
+
+  feedback.textContent="";
+  speakSequence(q.opt);
+}
+
+/* ====== CHECK ====== */
+function checkAnswer(btn,sel){
+  const correct=data[current].ans;
+  buttons.forEach(b=>b.disabled=true);
+
+  if(sel===correct){
+    btn.style.background="green";
+    feedback.textContent="✅ Correct!";
+    correctSound.play();
+    score++;
+    scoreText.textContent="Score: "+score;
+  }else{
+    btn.style.background="red";
+    feedback.textContent=`❌ Incorrect! Correct: ${correct}`;
+    wrongSound.play();
+  }
+
+  setTimeout(()=>{
+    current++;
+    if(current<data.length){
+      loadQuestion();
+    }else{
+      feedback.textContent=`🎉 You got ${score} of ${data.length}`;
+    }
+  },1400);
+}
+
+/* ====== START AUDIO ====== */
+game.addEventListener("click",()=>{
+  if(!started && data.length){
+    started=true;
+    music.volume=0.3;
+    music.play().catch(()=>{});
+    loadQuestion();
+  }
+});
+
+</script>
+
+</body>
+</html>
